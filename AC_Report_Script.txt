@@ -1,0 +1,57 @@
+using System.Collections.Generic;
+using System;
+
+/*Dictionary til DATA: Ordrenr -> (Variant, Antal)*/
+Dictionary<string, Dictionary<string, Tuple<int, string>>> Ordremap = new Dictionary<string, Dictionary<string, Tuple<int, string>>>();
+
+private void partGroup_AfterPrint(object sender, System.EventArgs e) {
+
+    /*Tjek om Ordrenr og variant eksister og tilføj til Dict derefter*/
+    if (Ordremap.ContainsKey(OrdreNr.Text)){
+        
+       /* foreach (Dictionary<string, Tuple<int, string>> d in Ordremap.Values){*/
+            if (Ordremap[OrdreNr.Text].ContainsKey(NestetPart.Text)){     
+                Ordremap[OrdreNr.Text][NestetPart.Text] = Tuple.Create(Ordremap[OrdreNr.Text][NestetPart.Text].Item1 + int.Parse(AntalPlade.Text), Levering.Text);
+            }
+            else{
+                /*d.Add(NestetPart.Text, new Tuple<int, string>(int.Parse(AntalPlade.Text), Levering.Text));*/
+                var Temp_Tuple = Tuple.Create(int.Parse(AntalPlade.Text), Levering.Text);
+                Ordremap[OrdreNr.Text].Add(NestetPart.Text, Temp_Tuple);
+                }
+    }
+    else{
+        /*Tuple<int, string> tempTuple = new Tuple<int, string>(int.Parse(label14.Text), label19.Text);*/
+        Ordremap.Add(OrdreNr.Text, new Dictionary<string, Tuple<int, string>>());
+        Ordremap[OrdreNr.Text].Add(NestetPart.Text, new Tuple<int, string>(int.Parse(AntalPlade.Text), Levering.Text));
+        }
+}
+
+
+private void lblNumToolsUsed_BeforePrint(object sender, System.ComponentModel.CancelEventArgs e) {
+
+    string rest = null;
+    string tempStart = null;
+    
+        
+    foreach(var outer in Ordremap){
+        
+        string nr = null;
+        string dateTemp = null;
+       
+        foreach(var inner in (Dictionary<string, Tuple<int, string>>) outer.Value){
+            nr = nr + String.Format("{0,40}|{1,20}", inner.Key, inner.Value.Item1) + "\n";
+            rest = rest + "\t" + inner.Value.Item1 + "\n"; 
+            dateTemp = inner.Value.Item2;         
+            }
+        if (outer.Key == ""){
+            tempStart = tempStart + "LAGER" + "\t" + dateTemp + "=>\t\t\n" + nr + "\n";
+            }
+        else{
+            tempStart = tempStart + outer.Key + "\t" + dateTemp + "=>\t\t\n" + nr + "\n";
+            }
+        }
+            
+    /* Print Data til Diverse rapport felter*/   
+    lblNumToolsUsed.Text = tempStart;
+    }
+
